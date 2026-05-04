@@ -1,14 +1,15 @@
 import uuid
 import json
 import os
+import requests
+import base64
 from datetime import datetime, timedelta
 
-# Colors ke codes
-GREEN = "\033[92m"
-RED = "\033[91m"
-CYAN = "\033[96m"
-YELLOW = "\033[93m"
-RESET = "\033[0m"
+# --- SETTINGS ---
+TOKEN = "YAHAN_APNA_TOKEN_PASTE_KAREIN"
+REPO = "sajidjavaid0786-netizen/my-key-tool"
+FILE_PATH = "database.json"
+# ----------------
 
 DB_FILE = "database.json"
 
@@ -17,58 +18,37 @@ def load_data():
         with open(DB_FILE, "r") as f: return json.load(f)
     return {}
 
-def save_data(data):
-    with open(DB_FILE, "w") as f: json.dump(data, f, indent=4)
+def push_to_github():
+    """GitHub par database.json ko automatic upload karne ka function"""
+    url = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
+    headers = {"Authorization": f"token {TOKEN}"}
+    
+    # Pehle purani file ka 'sha' (ID) lena parta hai update ke liye
+    r = requests.get(url, headers=headers)
+    sha = r.json().get('sha', '')
+
+    with open(DB_FILE, "rb") as f:
+        content = base64.b64encode(f.read()).decode()
+
+    data = {
+        "message": "Auto update database",
+        "content": content,
+        "sha": sha
+    }
+    
+    res = requests.put(url, headers=headers, json=data)
+    if res.status_code == 200 or res.status_code == 201:
+        print("\033[92m[✔] GitHub Database Updated Automatically! \033[0m")
+    else:
+        print("\033[91m[✘] GitHub Update Failed! Error:", res.status_code, "\033[0m")
 
 def main_menu():
     keys_db = load_data()
     while True:
-        print(f"\n{CYAN}====================================")
-        print("     TPC PRO ADMIN PANEL v3.0")
-        print("====================================" + f"{RESET}")
-        print(f"{YELLOW}Total Active Keys: {len(keys_db)}{RESET}")
-        print(f"{GREEN}[1] Generate Key (With Expiry)")
-        print(f"[2] View All Keys & Status")
-        print(f"{RED}[3] Verify a Key")
-        print(f"{CYAN}[4] Exit{RESET}")
-        
-        choice = input(f"\n{YELLOW}Select Option: {RESET}")
+        # ... (Upar wala menu aur logic wahi rahega) ...
+        # Bas Option 1 mein end par ye line add karni hai:
         
         if choice == "1":
-            print(f"\n{CYAN}--- Select Plan ---{RESET}")
-            print("Days: 1, 3, 7, 10, 15, 30")
-            try:
-                days = int(input(f"{GREEN}Kitne din ki key banani hai?: {RESET}"))
-                expiry_date = datetime.now() + timedelta(days=days)
-                new_k = "TPC-" + str(uuid.uuid4()).upper()[:8]
-                keys_db[new_k] = expiry_date.strftime("%Y-%m-%d %H:%M:%S")
-                save_data(keys_db)
-                print(f"\n{GREEN}[✔] Created: {new_k}")
-                print(f"[!] Valid until: {keys_db[new_k]}{RESET}")
-            except:
-                print(f"{RED}[✘] Ghalat input! Sirf number likhein.{RESET}")
-            
-        elif choice == "2":
-            print(f"\n{CYAN}--- ALL KEYS LIST ---{RESET}")
-            if not keys_db: print(f"{RED}Koi key nahi mili.{RESET}")
-            for k, exp in keys_db.items():
-                print(f"{GREEN}Key: {k} {YELLOW}| Expires: {exp}{RESET}")
-                
-        elif choice == "3":
-            check = input(f"{YELLOW}Enter key to verify: {RESET}")
-            if check in keys_db:
-                exp_time = datetime.strptime(keys_db[check], "%Y-%m-%d %H:%M:%S")
-                if datetime.now() < exp_time:
-                    print(f"{GREEN}[✔] VALID! Expires on: {keys_db[check]}{RESET}")
-                else:
-                    print(f"{RED}[✘] EXPIRED! Time's up.{RESET}")
-            else:
-                print(f"{RED}[✘] INVALID! Not found.{RESET}")
-                
-        elif choice == "4":
-            print(f"{YELLOW}Closing...{RESET}")
-            break
-
-if __name__ == "__main__":
-    main_menu()
-    
+            # ... key banane ka code ...
+            save_data(keys_db)
+            push_to_github() # Yeh line automatic upload karegi
