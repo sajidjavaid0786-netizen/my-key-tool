@@ -6,7 +6,7 @@ import base64
 from datetime import datetime, timedelta
 
 # --- SETTINGS ---
-TOKEN = "YAHAN_APNA_TOKEN_PASTE_KAREIN"
+TOKEN = "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"
 REPO = "sajidjavaid0786-netizen/my-key-tool"
 FILE_PATH = "database.json"
 # ----------------
