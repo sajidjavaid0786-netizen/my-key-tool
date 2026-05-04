@@ -3,6 +3,13 @@ import json
 import os
 from datetime import datetime, timedelta
 
+# Colors ke codes
+GREEN = "\033[92m"
+RED = "\033[91m"
+CYAN = "\033[96m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
+
 DB_FILE = "database.json"
 
 def load_data():
@@ -16,50 +23,52 @@ def save_data(data):
 def main_menu():
     keys_db = load_data()
     while True:
-        print("\n" + "="*35)
-        print("   TPC PRO ADMIN PANEL v3.0")
-        print("="*35)
-        print("1. Generate Key (With Expiry)")
-        print("2. View All Keys & Status")
-        print("3. Verify a Key")
-        print("4. Exit")
+        print(f"\n{CYAN}====================================")
+        print("     TPC PRO ADMIN PANEL v3.0")
+        print("====================================" + f"{RESET}")
+        print(f"{YELLOW}Total Active Keys: {len(keys_db)}{RESET}")
+        print(f"{GREEN}[1] Generate Key (With Expiry)")
+        print(f"[2] View All Keys & Status")
+        print(f"{RED}[3] Verify a Key")
+        print(f"{CYAN}[4] Exit{RESET}")
         
-        choice = input("\nSelect Option: ")
+        choice = input(f"\n{YELLOW}Select Option: {RESET}")
         
         if choice == "1":
-            print("\nSelect Plan:")
-            print("Days: 1, 3, 7, 10, 15, 20, 25, 30")
-            days = int(input("Kitne din ki key banani hai? "))
-            
-            # Key ki expiry date calculate karna
-            expiry_date = datetime.now() + timedelta(days=days)
-            new_k = "TPC-" + str(uuid.uuid4()).upper()[:8]
-            
-            # Database mein save karna
-            keys_db[new_k] = expiry_date.strftime("%Y-%m-%d %H:%M:%S")
-            save_data(keys_db)
-            print(f"\n[✔] Created: {new_k}")
-            print(f"[!] Valid until: {keys_db[new_k]}")
+            print(f"\n{CYAN}--- Select Plan ---{RESET}")
+            print("Days: 1, 3, 7, 10, 15, 30")
+            try:
+                days = int(input(f"{GREEN}Kitne din ki key banani hai?: {RESET}"))
+                expiry_date = datetime.now() + timedelta(days=days)
+                new_k = "TPC-" + str(uuid.uuid4()).upper()[:8]
+                keys_db[new_k] = expiry_date.strftime("%Y-%m-%d %H:%M:%S")
+                save_data(keys_db)
+                print(f"\n{GREEN}[✔] Created: {new_k}")
+                print(f"[!] Valid until: {keys_db[new_k]}{RESET}")
+            except:
+                print(f"{RED}[✘] Ghalat input! Sirf number likhein.{RESET}")
             
         elif choice == "2":
-            print("\n--- ALL KEYS & EXPIRY ---")
+            print(f"\n{CYAN}--- ALL KEYS LIST ---{RESET}")
+            if not keys_db: print(f"{RED}Koi key nahi mili.{RESET}")
             for k, exp in keys_db.items():
-                print(f"Key: {k} | Expires: {exp}")
+                print(f"{GREEN}Key: {k} {YELLOW}| Expires: {exp}{RESET}")
                 
         elif choice == "3":
-            check = input("Enter key to verify: ")
+            check = input(f"{YELLOW}Enter key to verify: {RESET}")
             if check in keys_db:
-                # Check karein ke waqt guzar toh nahi gaya?
                 exp_time = datetime.strptime(keys_db[check], "%Y-%m-%d %H:%M:%S")
                 if datetime.now() < exp_time:
-                    print(f"[✔] VALID! Expires on: {keys_db[check]}")
+                    print(f"{GREEN}[✔] VALID! Expires on: {keys_db[check]}{RESET}")
                 else:
-                    print("[✘] EXPIRED! Yeh key ab kaam nahi karegi.")
+                    print(f"{RED}[✘] EXPIRED! Time's up.{RESET}")
             else:
-                print("[✘] INVALID! Key database mein nahi hai.")
+                print(f"{RED}[✘] INVALID! Not found.{RESET}")
                 
-        elif choice == "4": break
+        elif choice == "4":
+            print(f"{YELLOW}Closing...{RESET}")
+            break
 
 if __name__ == "__main__":
     main_menu()
-        
+    
